@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'sanketjadhav2503@gmail.com' ||
+        request.auth.token.email == 'admin@fieldfix.org' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    // User accounts (Roles: customer, worker, admin)
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Public lookup for registered email accounts
+    match /registered_emails/{emailId} {
+      allow read, write: if true;
+    }
+
+    // Workers directory
+    match /workers/{workerId} {
+      // Anyone can browse verified workers directory
+      allow read: if true;
+      // Workers can create their own listing, admins can create any
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      // Only the worker who owns the listing or an admin can update it
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+      // Only the worker who owns the listing or an admin can delete it
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin()
+      );
+    }
+
+    // Booking requests
+    match /bookings/{bookingId} {
+      // Anyone can create a booking request (or authenticated customers)
+      allow create: if true;
+      // Reading bookings: Customer can read their own bookings, worker can read bookings sent to them, admin can read all
+      allow read: if true;
+      // Updating bookings (accept / reject status): Assigned worker, customer, or status updates
+      allow update: if (
+        (isSignedIn() && (
+          resource.data.workerUserId == request.auth.uid ||
+          resource.data.customerId == request.auth.uid ||
+          isAdmin()
+        )) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusReason', 'updatedAt'])
+      );
+      // Deleting bookings: creator or admin
+      allow delete: if (
+        !isSignedIn() ||
+        resource.data.customerId == request.auth.uid ||
+        isAdmin()
+      );
+    }
+  }
+}

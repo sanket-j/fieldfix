@@ -1,0 +1,8 @@
+{
+  "name": "FieldFix",
+  "description": "FieldFix connects local communities with trusted repair workers while preserving traditional low-cost engineering knowledge.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

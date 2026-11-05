@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account profile defining role-based access for customers, workers, or admins.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 150 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["customer", "worker", "admin"] },
+        "workerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "role", "createdAt"]
+    },
+    "Worker": {
+      "title": "Worker",
+      "description": "Represents a local repair technician with shop and contact details.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "shop": { "type": "string", "maxLength": 150 },
+        "skill": { "type": "string", "enum": ["Plumbing", "Electrical", "Masonry", "Carpentry"] },
+        "area": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 300 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "maps": { "type": "string", "maxLength": 500 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "shop", "skill", "area", "address", "phone"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Represents a service inquiry or booking request for a worker.",
+      "type": "object",
+      "properties": {
+        "workerId": { "type": "string", "maxLength": 128 },
+        "workerUserId": { "type": "string", "maxLength": 128 },
+        "workerName": { "type": "string", "maxLength": 100 },
+        "skill": { "type": "string", "enum": ["Plumbing", "Electrical", "Masonry", "Carpentry"] },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "requestedAt": { "type": "number" },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerPhone": { "type": "string", "maxLength": 30 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "whatsappDraft": { "type": "string", "maxLength": 3000 },
+        "statusReason": { "type": "string", "maxLength": 500 },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["workerId", "workerName", "skill", "status", "requestedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User account profiles storing role assignments."
+    },
+    "/workers/{workerId}": {
+      "schema": { "$ref": "#/entities/Worker" },
+      "description": "Public catalog of verified neighborhood repair workers."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/Booking" },
+      "description": "Tracked customer booking requests with real-time status."
+    }
+  }
+}
